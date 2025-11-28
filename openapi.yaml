@@ -1,0 +1,1437 @@
+openapi: 3.0.0
+info:
+  title: Pizza Delivery API
+  version: 1.0.0
+  description: RESTful API for a pizza delivery system, enabling menu browsing, pizza customization, shopping cart management, user authentication, order placement, and order tracking.
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+  - url: https://api.pizzadeliverysystem.com/v1
+    description: Production server
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Authentication
+    description: User registration and login
+  - name: Users
+    description: User profile and address management
+  - name: Menu
+    description: Browse pizzas, sizes, crusts, and toppings
+  - name: Cart
+    description: Shopping cart management
+  - name: Orders
+    description: Place and track orders
+
+paths:
+  /register:
+    post:
+      summary: Register a new user
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+      responses:
+        '201':
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: User with this email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /login:
+    post:
+      summary: Authenticate user and get a JWT token
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: User successfully authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /me:
+    get:
+      summary: Get current user profile
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      summary: Update current user profile
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '200':
+          description: User profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /addresses:
+    get:
+      summary: Get all addresses for the current user
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of user addresses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Address'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      summary: Add a new address for the current user
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressCreate'
+      responses:
+        '201':
+          description: Address successfully added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Address'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /addresses/{addressId}:
+    parameters:
+      - in: path
+        name: addressId
+        schema:
+          type: string
+          format: uuid
+        required: true
+        description: ID of the address to retrieve, update, or delete
+    get:
+      summary: Get a specific address by ID for the current user
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Address details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Address'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      summary: Update a specific address by ID for the current user
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressUpdate'
+      responses:
+        '200':
+          description: Address updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Address'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: Delete a specific address by ID for the current user
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Address deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /pizzas:
+    get:
+      summary: Get a list of all available pizzas
+      tags:
+        - Menu
+      responses:
+        '200':
+          description: List of pizzas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PizzaSummary'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /pizzas/{pizzaId}:
+    parameters:
+      - in: path
+        name: pizzaId
+        schema:
+          type: string
+          format: uuid
+        required: true
+        description: ID of the pizza to retrieve
+    get:
+      summary: Get details of a specific pizza, including default toppings, sizes, and crusts
+      tags:
+        - Menu
+      responses:
+        '200':
+          description: Pizza details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PizzaDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /sizes:
+    get:
+      summary: Get a list of all available pizza sizes
+      tags:
+        - Menu
+      responses:
+        '200':
+          description: List of pizza sizes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PizzaSize'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /crusts:
+    get:
+      summary: Get a list of all available crust types
+      tags:
+        - Menu
+      responses:
+        '200':
+          description: List of crust types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CrustType'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /toppings:
+    get:
+      summary: Get a list of all available toppings
+      tags:
+        - Menu
+      responses:
+        '200':
+          description: List of toppings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Topping'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /cart:
+    get:
+      summary: Retrieve the current user's shopping cart
+      tags:
+        - Cart
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current shopping cart details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Cart not found (e.g., if no items have been added yet, or new user). A new cart might be created implicitly by POST /cart/items.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: Clear the current user's shopping cart
+      tags:
+        - Cart
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Cart cleared successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /cart/items:
+    post:
+      summary: Add a customized pizza item to the cart
+      tags:
+        - Cart
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartItemCreate'
+      responses:
+        '201':
+          description: Cart item added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Pizza, size, crust, or topping not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /cart/items/{cartItemId}:
+    parameters:
+      - in: path
+        name: cartItemId
+        schema:
+          type: string
+          format: uuid
+        required: true
+        description: ID of the cart item to update or delete
+    put:
+      summary: Update a specific cart item (quantity, toppings)
+      tags:
+        - Cart
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartItemUpdate'
+      responses:
+        '200':
+          description: Cart item updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: Remove a specific cart item
+      tags:
+        - Cart
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Cart item removed successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /orders:
+    get:
+      summary: Get a list of all orders for the current user (Order History)
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of user's orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      summary: Place a new order from the cart
+      description: This endpoint finalizes the cart content, creates an order, and initiates payment.
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreate'
+      responses:
+        '201':
+          description: Order placed successfully and payment initiated/completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: User forbidden or cart empty
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Delivery address or cart not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Payment failed or cart is empty
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /orders/{orderId}:
+    parameters:
+      - in: path
+        name: orderId
+        schema:
+          type: string
+          format: uuid
+        required: true
+        description: ID of the order to retrieve
+    get:
+      summary: Get details of a specific order
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Order details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /orders/{orderId}/status:
+    parameters:
+      - in: path
+        name: orderId
+        schema:
+          type: string
+          format: uuid
+        required: true
+        description: ID of the order to get status for
+    get:
+      summary: Get the current status of a specific order
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Order status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orderId:
+                    type: string
+                    format: uuid
+                    description: ID of the order
+                  status:
+                    type: string
+                    description: Current status of the order
+                    enum: [Placed, Preparing, Out for Delivery, Delivered, Cancelled]
+                  estimatedDeliveryTime:
+                    type: string
+                    format: date-time
+                    nullable: true
+                    description: Estimated time when the order will be delivered
+                required:
+                  - orderId
+                  - status
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    BadRequest:
+      description: Invalid request payload or parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Authentication required or invalid credentials
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Access forbidden for the current user
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+          description: A unique error code
+        message:
+          type: string
+          description: A human-readable error message
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT authentication token
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+        - token
+        - user
+
+    # User related schemas
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Primary Key for User
+          readOnly: true
+        email:
+          type: string
+          format: email
+          description: User's unique email address
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp of account creation
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp of last update
+          readOnly: true
+      required:
+        - id
+        - email
+        - created_at
+        - updated_at
+    UserRegistration:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's unique email address
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: User's password
+      required:
+        - email
+        - password
+    UserLogin:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's unique email address
+        password:
+          type: string
+          format: password
+          description: User's password
+      required:
+        - email
+        - password
+    UserUpdate:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's unique email address
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: User's new password (optional, only if changing)
+
+    # Address related schemas
+    Address:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Primary Key for Address
+          readOnly: true
+        user_id:
+          type: string
+          format: uuid
+          description: Foreign Key to User
+          readOnly: true
+        street:
+          type: string
+          description: Street address line 1
+        city:
+          type: string
+          description: City
+        state:
+          type: string
+          description: State/Province
+        zip_code:
+          type: string
+          description: Zip/Postal code
+        country:
+          type: string
+          description: Country
+        label:
+          type: string
+          description: User-defined label for address (e.g., Home, Work)
+          nullable: true
+        is_default:
+          type: boolean
+          description: Indicates if this is the user's default address
+      required:
+        - id
+        - user_id
+        - street
+        - city
+        - state
+        - zip_code
+        - country
+        - is_default
+    AddressCreate:
+      type: object
+      properties:
+        street:
+          type: string
+          description: Street address line 1
+        city:
+          type: string
+          description: City
+        state:
+          type: string
+          description: State/Province
+        zip_code:
+          type: string
+          description: Zip/Postal code
+        country:
+          type: string
+          description: Country
+        label:
+          type: string
+          description: User-defined label for address (e.g., Home, Work)
+          nullable: true
+        is_default:
+          type: boolean
+          description: Indicates if this is the user's default address
+          default: false
+      required:
+        - street
+        - city
+        - state
+        - zip_code
+        - country
+    AddressUpdate:
+      type: object
+      properties:
+        street:
+          type: string
+          description: Street address line 1
+        city:
+          type: string
+          description: City
+        state:
+          type: string
+          description: State/Province
+        zip_code:
+          type: string
+          description: Zip/Postal code
+        country:
+          type: string
+          description: Country
+        label:
+          type: string
+          description: User-defined label for address (e.g., Home, Work)
+          nullable: true
+        is_default:
+          type: boolean
+          description: Indicates if this is the user's default address
+
+    # Menu related schemas
+    PizzaSummary: # For /pizzas list
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Primary Key for Pizza
+        name:
+          type: string
+          description: Name of the pizza (e.g., Margherita, Pepperoni)
+        description:
+          type: string
+          description: Detailed description of the pizza
+        image_url:
+          type: string
+          format: url
+          description: URL to the pizza's image
+          nullable: true
+        base_price:
+          type: number
+          format: float
+          description: Base price for the pizza (e.g., for smallest size)
+      required:
+        - id
+        - name
+        - description
+        - base_price
+    PizzaToppingDefault:
+      type: object
+      properties:
+        topping_id:
+          type: string
+          format: uuid
+          description: ID of the topping
+        name:
+          type: string
+          description: Topping name
+        price:
+          type: number
+          format: float
+          description: Price per unit of this topping
+        is_default:
+          type: boolean
+          description: Is this topping included by default on this pizza type
+        is_removable:
+          type: boolean
+          description: Can this default topping be removed by the user
+      required:
+        - topping_id
+        - name
+        - price
+        - is_default
+        - is_removable
+    PizzaDetail: # For /pizzas/{pizzaId}
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/PizzaSummary'
+        - type: object
+          properties:
+            available_sizes:
+              type: array
+              items:
+                $ref: '#/components/schemas/PizzaSize'
+            available_crusts:
+              type: array
+              items:
+                $ref: '#/components/schemas/CrustType'
+            default_toppings:
+              type: array
+              items:
+                $ref: '#/components/schemas/PizzaToppingDefault'
+          required:
+            - available_sizes
+            - available_crusts
+            - default_toppings
+
+    PizzaSize:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Primary Key for PizzaSize
+        name:
+          type: string
+          description: Size name (e.g., Small, Medium, Large)
+        price_multiplier:
+          type: number
+          format: float
+          description: Multiplier applied to base_price for this size
+      required:
+        - id
+        - name
+        - price_multiplier
+    CrustType:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Primary Key for CrustType
+        name:
+          type: string
+          description: Crust type name (e.g., Thin, Thick, Stuffed)
+        price_adjustment:
+          type: number
+          format: float
+          description: Additional cost for choosing this crust type
+      required:
+        - id
+        - name
+        - price_adjustment
+    Topping:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Primary Key for Topping
+        name:
+          type: string
+          description: Topping name (e.g., Mushrooms, Extra Cheese)
+        description:
+          type: string
+          description: Description of the topping
+          nullable: true
+        price:
+          type: number
+          format: float
+          description: Price per unit of this topping when added
+      required:
+        - id
+        - name
+        - price
+
+    # Cart related schemas
+    Cart:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Primary Key for Cart
+          readOnly: true
+        user_id:
+          type: string
+          format: uuid
+          description: Foreign Key to User, NULL for anonymous carts
+          nullable: true
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp of cart creation
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp of last cart modification
+          readOnly: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+        total_amount:
+          type: number
+          format: float
+          description: Calculated total amount of items in the cart
+          readOnly: true
+      required:
+        - id
+        - created_at
+        - updated_at
+        - items
+        - total_amount
+
+    CartItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Primary Key for CartItem
+          readOnly: true
+        pizza:
+          $ref: '#/components/schemas/PizzaSummary' # Base pizza type chosen
+        pizza_size:
+          $ref: '#/components/schemas/PizzaSize'
+        crust_type:
+          $ref: '#/components/schemas/CrustType'
+          nullable: true
+        quantity:
+          type: integer
+          format: int32
+          minimum: 1
+          description: Number of this specific customized pizza item
+        unit_price_at_addition:
+          type: number
+          format: float
+          description: Calculated price of one customized pizza at time of addition
+          readOnly: true
+        notes:
+          type: string
+          description: Special instructions for this specific cart item
+          nullable: true
+        customized_toppings:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItemTopping'
+      required:
+        - id
+        - pizza
+        - pizza_size
+        - quantity
+        - unit_price_at_addition
+        - customized_toppings
+
+    CartItemCreate:
+      type: object
+      properties:
+        pizza_id:
+          type: string
+          format: uuid
+          description: ID of the base pizza type chosen
+        pizza_size_id:
+          type: string
+          format: uuid
+          description: ID of the PizzaSize
+        crust_type_id:
+          type: string
+          format: uuid
+          description: ID of the CrustType, NULL if no specific crust chosen or applicable
+          nullable: true
+        quantity:
+          type: integer
+          format: int32
+          minimum: 1
+          default: 1
+          description: Number of this specific customized pizza item
+        notes:
+          type: string
+          description: Special instructions for this specific cart item
+          nullable: true
+        customized_toppings:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItemToppingRequest'
+          description: List of toppings added or removed for this item
+          nullable: true # If no customization needed
+      required:
+        - pizza_id
+        - pizza_size_id
+        - quantity
+
+    CartItemUpdate:
+      type: object
+      properties:
+        pizza_size_id:
+          type: string
+          format: uuid
+          description: ID of the PizzaSize
+        crust_type_id:
+          type: string
+          format: uuid
+          description: ID of the CrustType, NULL if no specific crust chosen or applicable
+          nullable: true
+        quantity:
+          type: integer
+          format: int32
+          minimum: 1
+          description: Number of this specific customized pizza item
+        notes:
+          type: string
+          description: Special instructions for this specific cart item
+          nullable: true
+        customized_toppings:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItemToppingRequest'
+          description: List of toppings added or removed for this item
+          nullable: true
+    CartItemTopping: # For displaying in CartItem
+      type: object
+      properties:
+        topping_id:
+          type: string
+          format: uuid
+          description: Foreign Key to Topping
+        name:
+          type: string
+          description: Name of the topping
+        price:
+          type: number
+          format: float
+          description: Price of the topping
+        quantity:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Quantity of this topping for the cart item (e.g., 1 for regular, 2 for double)
+        is_removed:
+          type: boolean
+          description: True if this was a default topping that was removed by the user
+      required:
+        - topping_id
+        - name
+        - price
+        - quantity
+        - is_removed
+    CartItemToppingRequest: # For requests to add/update cart item
+      type: object
+      properties:
+        topping_id:
+          type: string
+          format: uuid
+          description: Foreign Key to Topping
+        quantity:
+          type: integer
+          format: int32
+          minimum: 0
+          default: 1
+          description: Quantity of this topping for the cart item (e.g., 1 for regular, 2 for double). Use 0 to remove an added topping.
+        is_removed:
+          type: boolean
+          description: True if this was a default topping that was removed by the user. Only relevant for default toppings.
+          default: false
+      required:
+        - topping_id
+        - quantity
+
+    # Order related schemas
+    OrderSummary: # For GET /orders list
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Primary Key for Order
+        total_amount:
+          type: number
+          format: float
+          description: Total amount of the order
+        order_date:
+          type: string
+          format: date-time
+          description: Date and time the order was placed
+        status:
+          type: string
+          description: Current status of the order
+          enum: [Placed, Preparing, Out for Delivery, Delivered, Cancelled]
+        payment_status:
+          type: string
+          description: Overall payment status
+          enum: [Pending, Paid, Failed, Refunded]
+        estimated_delivery_time:
+          type: string
+          format: date-time
+          nullable: true
+          description: Estimated delivery time
+      required:
+        - id
+        - total_amount
+        - order_date
+        - status
+        - payment_status
+
+    Order: # For GET /orders/{orderId}
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Primary Key for Order
+          readOnly: true
+        user_id:
+          type: string
+          format: uuid
+          description: Foreign Key to User who placed the order
+          readOnly: true
+        delivery_address:
+          $ref: '#/components/schemas/Address'
+          description: Snapshot of the delivery address details at the time of order
+          readOnly: true
+        total_amount:
+          type: number
+          format: float
+          description: Total amount of the order, including all items and fees
+          readOnly: true
+        order_date:
+          type: string
+          format: date-time
+          description: Date and time the order was placed
+          readOnly: true
+        status:
+          type: string
+          description: Current status of the order
+          enum: [Placed, Preparing, Out for Delivery, Delivered, Cancelled]
+          readOnly: true
+        payment_status:
+          type: string
+          description: Overall payment status of the order
+          enum: [Pending, Paid, Failed, Refunded]
+          readOnly: true
+        estimated_delivery_time:
+          type: string
+          format: date-time
+          description: Estimated time when the order will be delivered
+          nullable: true
+          readOnly: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        payments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Payment'
+      required:
+        - id
+        - user_id
+        - delivery_address
+        - total_amount
+        - order_date
+        - status
+        - payment_status
+        - items
+        - payments
+
+    OrderCreate:
+      type: object
+      properties:
+        delivery_address_id:
+          type: string
+          format: uuid
+          description: ID of the user's saved address to use for delivery.
+          nullable: true # If a new address is provided
+        new_delivery_address:
+          $ref: '#/components/schemas/AddressCreate'
+          description: Full details for a new delivery address. Required if delivery_address_id is null.
+          nullable: true
+        payment_method:
+          type: string
+          description: Method used for payment (e.g., 'credit_card', 'paypal', 'cash_on_delivery').
+          enum: [credit_card, paypal, cash_on_delivery] # Example methods
+        card_details:
+          type: object
+          description: Payment card details if payment_method is 'credit_card'. Not stored, just passed to gateway.
+          properties:
+            card_number:
+              type: string
+              pattern: '^\d{13,19}$' # Basic validation for card number length
+            exp_month:
+              type: integer
+              minimum: 1
+              maximum: 12
+            exp_year:
+              type: integer
+              minimum: 2000 # Example, adjust as needed
+            cvv:
+              type: string
+              pattern: '^\d{3,4}$' # 3 or 4 digits
+          required:
+            - card_number
+            - exp_month
+            - exp_year
+            - cvv
+          nullable: true # Only required for credit card payment_method
+      required:
+        - payment_method
+      oneOf: # Must provide either existing address ID or a new address
+        - required: [delivery_address_id]
+        - required: [new_delivery_address]
+      
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Primary Key for OrderItem
+          readOnly: true
+        pizza:
+          $ref: '#/components/schemas/PizzaSummary' # Base pizza type ordered
+        pizza_size:
+          $ref: '#/components/schemas/PizzaSize'
+        crust_type:
+          $ref: '#/components/schemas/CrustType'
+          nullable: true
+        quantity:
+          type: integer
+          format: int32
+          minimum: 1
+          description: Number of this specific customized pizza in the order
+        unit_price_at_order:
+          type: number
+          format: float
+          description: Calculated price of one customized pizza at time of order
+          readOnly: true
+        notes:
+          type: string
+          description: Special instructions for this specific order item
+          nullable: true
+        customized_toppings:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemTopping'
+      required:
+        - id
+        - pizza
+        - pizza_size
+        - quantity
+        - unit_price_at_order
+        - customized_toppings
+
+    OrderItemTopping:
+      type: object
+      properties:
+        topping_id:
+          type: string
+          format: uuid
+          description: Foreign Key to Topping
+        name:
+          type: string
+          description: Name of the topping
+        price:
+          type: number
+          format: float
+          description: Price of the topping
+        quantity:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Quantity of this topping for the order item
+        is_removed:
+          type: boolean
+          description: True if this was a default topping that was removed by the user
+      required:
+        - topping_id
+        - name
+        - price
+        - quantity
+        - is_removed
+
+    Payment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Primary Key for Payment
+          readOnly: true
+        order_id:
+          type: string
+          format: uuid
+          description: Foreign Key to Order
+          readOnly: true
+        amount:
+          type: number
+          format: float
+          description: Amount of this specific payment transaction
+        payment_method:
+          type: string
+          description: Method used for payment (e.g., Credit Card, PayPal)
+        transaction_id:
+          type: string
+          description: Unique ID provided by the payment gateway
+          nullable: true
+        status:
+          type: string
+          description: Status of this payment transaction
+          enum: [Success, Failed, Refunded, Pending]
+        payment_date:
+          type: string
+          format: date-time
+          description: Date and time of the payment transaction
+          readOnly: true
+      required:
+        - id
+        - order_id
+        - amount
+        - payment_method
+        - status
+        - payment_date
